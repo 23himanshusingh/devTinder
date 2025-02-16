@@ -21,9 +21,23 @@ app.get("/admin/deleteUser", (req, res) => {
     res.send('Delete user');
 });
 
+
 app.get("/user", userAuth, (req, res) => {
-    res.send('Get user data');
+    try {
+        throw new Error('User data error');
+        res.send('User data');
+    }catch (err){
+        res.status(500).send('Something broke!');
+    }
 });
+
+app.use("/", (err, req, res, next) => {
+    console.error(err.stack);
+    res.status(500).send('Something Wrong!');
+});
+
+//error handling middleware
+
 
 
 
