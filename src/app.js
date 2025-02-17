@@ -68,15 +68,15 @@ app.delete('/delete', async (req, res) => {
 });
 
 app.patch('/update', async (req, res) => {
-    const email = req.body.email;
-    const obj = {firstName : req.body.firstName, age : req.body.age};
+    // const email = req.body.email;
+    const obj = req.body;
     try {
-        const user = await User.findOneAndUpdate({email : email}, obj);
+        // const user = await User.findOneAndUpdate({email : email}, obj);
+        const user = await User.findByIdAndUpdate({_id : req.body.id}, obj, {runValidators:true});
         if (!user){
             return res.status(404).send("User not found");
         }else{
             res.send("User updated");
-            console.log(user);
         }
     }catch(err){
         res.status(400).send(err);
