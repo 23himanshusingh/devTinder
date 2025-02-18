@@ -14,10 +14,23 @@ catch((err) => {
 
 app.use(express.json()); // parse JSON bodies
 
+// Middleware to validate allowed fields for signup
+const validateSignupFields = (req, res, next) => {
+    const ALLOWED_FIELDS = ['firstName', 'lastName', 'email', 'password', 'age', 'gender', 'photoUrl', 'about', 'skills'];
+    const receivedFields = Object.keys(req.body);
+    const isValidOperation = receivedFields.every((field) => ALLOWED_FIELDS.includes(field));
+
+    if (!isValidOperation) {
+        return res.status(400).send({ error: 'Invalid fields in signup request' });
+    }
+
+    next();
+};
+
 // add a user to the database
-app.post('/signup', async (req, res) => {
-    const user = new User(req.body);
+app.post('/signup', validateSignupFields,  async (req, res) => {
     try{
+        const user = new User(req.body);
         await user.save();
         res.status(201).send(user);
     }catch(err){
@@ -39,7 +52,7 @@ app.get('/user', async (req, res) => {
     }
 });
 
-// get all users
+// get all users in the collection
 app.get('/users', async (req,res) => {
     try{
         const users = await User.find({});
@@ -54,7 +67,7 @@ app.get('/users', async (req,res) => {
 });
 
 // delete a user by their id
-app.delete('/delete', async (req, res) => {
+app.delete('/user', async (req, res) => {
     try{
         const user = await User.findByIdAndDelete({_id: req.body.id});
         if (!user){
@@ -67,19 +80,27 @@ app.delete('/delete', async (req, res) => {
     }
 });
 
-app.patch('/update', async (req, res) => {
+
+
+app.patch('/user/:id', async (req, res) => {
     // const email = req.body.email;
     const obj = req.body;
+    const id = req.params?.id;
     try {
         // const user = await User.findOneAndUpdate({email : email}, obj);
-        const user = await User.findByIdAndUpdate({_id : req.body.id}, obj, {runValidators:true});
+        const ALLOWED_UPDATES = ['password','age','gender','photoUrl','about','skills'];
+        const isUpdateAllowed = Object.keys(obj).every((update) => ALLOWED_UPDATES.includes(update));
+        if (!isUpdateAllowed){
+            throw new Error("Invalid updates");
+        }
+        const user = await User.findByIdAndUpdate({_id : id}, obj, {runValidators:true});
         if (!user){
-            return res.status(404).send("User not found");
+            res.status(404).send("User not found");
         }else{
             res.send("User updated");
         }
     }catch(err){
-        res.status(400).send(err);
+        res.status(400).send(err.message);
     }
 });
 
