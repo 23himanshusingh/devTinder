@@ -4,7 +4,8 @@ const connectDB = require("./config/database"); // import database connection
 const User = require("./models/user"); // import user model
 const validateSignupData = require("./utils/validate"); // import validate function
 const bcrypt = require("bcrypt");
-
+const cookieParser = require("cookie-parser");
+const jwt = require("jsonwebtoken");
 
 connectDB()
   .then(() => {
@@ -18,6 +19,7 @@ connectDB()
   });
 
 app.use(express.json()); // parse JSON bodies
+app.use(cookieParser()); // parse cookies in the request headers to make it accessible 
 
 
 
@@ -128,20 +130,38 @@ app.patch("/user/:id", async (req, res) => {
   }
 });
 
-
-app.post("/login", async (req, res) => {
-    const { email, password } = req.body;
+app.get("/profile", async (req, res) => {
     try {
-      const user = await User.findOne({ email : email });
-        if (!user) {
-            throw new Error("Invalid credentials");
-        }
-        const isMatch = await bcrypt.compare(password, user.password);
-        if (!isMatch) {
-            throw new Error("Invalid credentials");
-        }
-        res.send("Logged in successfully");
+        const token = req.cookies.token;
+        console.log(token);
+        const decoded = jwt.verify(token, "Mysecretkey");
+        const user = await User.findOne({ _id: decoded._id });
+        res.send(user);
     } catch (err) {
         res.status(400).send("ERROR : " + err.message);
     }
 });
+
+app.post("/login", async (req, res) => {
+    const { email, password } = req.body;
+    try {
+        const user = await User.findOne({ email : email });
+        //Validate email
+        if (!user) {
+            throw new Error("Invalid credentials");
+        }
+        const isPasswordValid = await bcrypt.compare(password, user.password);
+        //Validate password
+        if (!isPasswordValid) {
+            throw new Error("Invalid credentials");
+        }else{
+            const token = await jwt.sign({ _id: user._id }, "Mysecretkey");
+            res.cookie("token", token);
+            console.log(token);
+            res.send("Logged in successfully");
+        }
+    } catch (err) {
+        res.status(400).send("ERROR : " + err.message);
+    }
+});
+
