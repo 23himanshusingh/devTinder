@@ -127,3 +127,21 @@ app.patch("/user/:id", async (req, res) => {
     res.status(400).send(err.message);
   }
 });
+
+
+app.post("/login", async (req, res) => {
+    const { email, password } = req.body;
+    try {
+      const user = await User.findOne({ email : email });
+        if (!user) {
+            throw new Error("Invalid credentials");
+        }
+        const isMatch = await bcrypt.compare(password, user.password);
+        if (!isMatch) {
+            throw new Error("Invalid credentials");
+        }
+        res.send("Logged in successfully");
+    } catch (err) {
+        res.status(400).send("ERROR : " + err.message);
+    }
+});
