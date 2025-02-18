@@ -4,8 +4,10 @@ const connectDB = require("./config/database"); // import database connection
 const User = require("./models/user"); // import user model
 const validateSignupData = require("./utils/validate"); // import validate function
 const bcrypt = require("bcrypt");
-const cookieParser = require("cookie-parser");
 const jwt = require("jsonwebtoken");
+const userAuth = require("./middlewares/auth");
+const cookieParser = require("cookie-parser");
+
 
 connectDB()
   .then(() => {
@@ -20,6 +22,7 @@ connectDB()
 
 app.use(express.json()); // parse JSON bodies
 app.use(cookieParser()); // parse cookies in the request headers to make it accessible 
+
 
 
 
@@ -130,20 +133,24 @@ app.patch("/user/:id", async (req, res) => {
   }
 });
 
-app.get("/profile", async (req, res) => {
+app.get("/profile", userAuth, async (req, res) => {
     try {
-        const token = req.cookies.token;
-        const decoded = jwt.verify(token, "Mysecretkey");
-        const user = await User.findOne({ _id: decoded._id });
-        if (!user) {
-            throw new Error("User not found");
-        }else{
-            res.send(user);
-        }
+        const user = req.user;
+        res.send(user);
     } catch (err) {
-        res.status(400).send("ERROR : " + err.message);
+        res.status(400).send(err.message);
     }
 });
+
+app.post("/sendConnectionReq", userAuth, (req, res) => {
+    try {
+        const user = req.user;
+        res.send(user.firstName + " has sent a connection request");
+    }catch(err){
+        res.send(err.message);
+    }
+
+})
 
 app.post("/login", async (req, res) => {
     const { email, password } = req.body;
@@ -158,9 +165,8 @@ app.post("/login", async (req, res) => {
         if (!isPasswordValid) {
             throw new Error("Invalid credentials");
         }else{
-            const token = await jwt.sign({ _id: user._id }, "Mysecretkey");
-            res.cookie("token", token);
-            console.log(token);
+            const token = await jwt.sign({ _id: user._id }, "Mysecretkey", { expiresIn: '7d' });
+            res.cookie("token", token, { expires: new Date(Date.now() + 900000), httpOnly: true });
             res.send("Logged in successfully");
         }
     } catch (err) {

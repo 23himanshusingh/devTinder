@@ -1,26 +1,25 @@
-// custom middleware to check if the user/admin is authorized or not
+const User = require("../models/user");
+const jwt = require("jsonwebtoken");
 
-const adminAuth = (req, res, next) => {
-    const token = 'xyzz';
-    const isAdminAuthorized = token === 'xyz';
-    if (isAdminAuthorized) {
+// custom middleware to check if the user is authorized or not
+const userAuth = async (req, res, next) => {
+    try{
+        const token = req.cookies.token;
+        if (!token){
+            throw new Error(" JWT expired");
+        }
+        const decodedMsg = await jwt.verify(token, "Mysecretkey");
+        const user = await User.findById({ _id: decodedMsg._id });
+        if (!user) {
+            throw new Error("User not found");
+        }
+
+        req.user = user;
         next();
-    } else {
-        res.status(401).send('Unauthorized request');
+    }
+    catch(err){
+        res.status(401).send({ error: 'Please authenticate' });
     }
 };
 
-const userAuth = (req, res, next) => {
-    const token = 'xyz';
-    const isUserAuthorized = token === 'xyz';
-    if (isUserAuthorized) {
-        next();
-    } else {
-        res.status(401).send('Unauthorized request');
-    }
-};
-
-module.exports = {
-    adminAuth,
-    userAuth
-}
+module.exports = userAuth;
