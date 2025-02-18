@@ -133,10 +133,13 @@ app.patch("/user/:id", async (req, res) => {
 app.get("/profile", async (req, res) => {
     try {
         const token = req.cookies.token;
-        console.log(token);
         const decoded = jwt.verify(token, "Mysecretkey");
         const user = await User.findOne({ _id: decoded._id });
-        res.send(user);
+        if (!user) {
+            throw new Error("User not found");
+        }else{
+            res.send(user);
+        }
     } catch (err) {
         res.status(400).send("ERROR : " + err.message);
     }
