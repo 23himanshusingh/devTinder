@@ -1,13 +1,10 @@
 const express = require("express");
 const app = express(); // create express app
 const connectDB = require("./config/database"); // import database connection
-const User = require("./models/user"); // import user model
-const validateSignupData = require("./utils/validate"); // import validate function
-const bcrypt = require("bcrypt");
-const jwt = require("jsonwebtoken");
-const userAuth = require("./middlewares/auth");
 const cookieParser = require("cookie-parser");
-
+const authRouter = require("./routes/auth");
+const profileRouter = require("./routes/profile");
+const requestRouter = require("./routes/request");
 
 connectDB()
   .then(() => {
@@ -24,153 +21,19 @@ app.use(express.json()); // parse JSON bodies
 app.use(cookieParser()); // parse cookies in the request headers to make it accessible 
 
 
+app.use("/",authRouter); // add authRouter to the app
+app.use("/",profileRouter); // add profileRouter to the app
+app.use("/",requestRouter); // add requestRouter to the app
 
 
-// add a user to the database
-app.post("/signup", async (req, res) => {
-  try {
-    // validate the request body
-    const { valid, error } = validateSignupData(req.body);
 
-    if (!valid) {
-      throw new Error(error);
-    }
 
-    const { firstName, lastName, email, password } = req.body;
 
-    //encrypt the password
-    const hashedPassword = await bcrypt.hash(password, 10); 
 
-    console.log(hashedPassword);
 
-    // create a new user
-    const user = new User({
-      firstName,
-      lastName,
-      email,
-      password: hashedPassword,
-    });
 
-    await user.save();
-    res.status(201).send(user);
-  } catch (err) {
-    res.status(400).send(err);
-  }
-});
 
-// get users by their email id
-app.get("/user", async (req, res) => {
-  try {
-    const user = await User.find({ email: req.body.email });
-    if (user.length === 0) {
-      return res.status(404).send("User not found");
-    } else {
-      res.send(user);
-    }
-  } catch (err) {
-    res.status(400).send(err);
-  }
-});
 
-// get all users in the collection
-app.get("/users", async (req, res) => {
-  try {
-    const users = await User.find({});
-    if (users.length === 0) {
-      return res.status(404).send("No users found");
-    } else {
-      res.send(users);
-    }
-  } catch (err) {
-    res.status(400).send(err);
-  }
-});
 
-// delete a user by their id
-app.delete("/user", async (req, res) => {
-  try {
-    const user = await User.findByIdAndDelete({ _id: req.body.id });
-    if (!user) {
-      return res.status(404).send("User not found");
-    } else {
-      res.send("User deleted");
-    }
-  } catch (err) {
-    res.status(400).send(err);
-  }
-});
 
-app.patch("/user/:id", async (req, res) => {
-  // const email = req.body.email;
-  const obj = req.body;
-  const id = req.params?.id;
-  try {
-    // const user = await User.findOneAndUpdate({email : email}, obj);
-    const ALLOWED_UPDATES = [
-      "password",
-      "age",
-      "gender",
-      "photoUrl",
-      "about",
-      "skills",
-    ];
-    const isUpdateAllowed = Object.keys(obj).every((update) =>
-      ALLOWED_UPDATES.includes(update)
-    );
-    if (!isUpdateAllowed) {
-      throw new Error("Invalid updates");
-    }
-    const user = await User.findByIdAndUpdate({ _id: id }, obj, {
-      runValidators: true,
-    });
-    if (!user) {
-      res.status(404).send("User not found");
-    } else {
-      res.send("User updated");
-    }
-  } catch (err) {
-    res.status(400).send(err.message);
-  }
-});
-
-app.get("/profile", userAuth, async (req, res) => {
-    try {
-        const user = req.user;
-        res.send(user);
-    } catch (err) {
-        res.status(400).send(err.message);
-    }
-});
-
-app.post("/sendConnectionReq", userAuth, (req, res) => {
-    try {
-        const user = req.user;
-        res.send(user.firstName + " has sent a connection request");
-    }catch(err){
-        res.send(err.message);
-    }
-
-})
-
-app.post("/login", async (req, res) => {
-    const { email, password } = req.body;
-    try {
-        const user = await User.findOne({ email : email });
-        //Validate email
-        if (!user) {
-            throw new Error("Invalid credentials");
-        }
-        const isPasswordValid = await user.validatePassword(password);
-        //Validate password
-        if (!isPasswordValid) {
-            throw new Error("Invalid credentials");
-        }else{
-            const token = await user.getJWT();
-            res.cookie("token", token, { expires: new Date(Date.now() + 10*900000)});
-            res.send("Logged in successfully");
-        }
-    } catch (err) {
-        res.status(400).send("ERROR : " + err.message);
-    }
-});
 
