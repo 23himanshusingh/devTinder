@@ -6,7 +6,7 @@ const userAuth = async (req, res, next) => {
     try{
         const token = req.cookies.token;
         if (!token){
-            throw new Error(" JWT expired");
+            throw new Error("JWT expired");
         }
         const decodedMsg = await jwt.verify(token, "Mysecretkey");
         const user = await User.findById({ _id: decodedMsg._id });
