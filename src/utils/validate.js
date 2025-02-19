@@ -30,4 +30,25 @@ const validateSignupData = (data) => {
   return { valid: true };
 };
 
-module.exports = validateSignupData;
+const validateEditProfileData = (data) => {
+  const ALLOWED_FIELDS = [
+    "firstName",
+    "lastName",
+    "age",
+    "about",
+    "skills",
+    "photoUrl",
+    "gender"
+  ];
+  const receivedFields = Object.keys(data);
+  const isValidOperation = receivedFields.every((field) =>
+    ALLOWED_FIELDS.includes(field)
+  );
+  
+  if (!isValidOperation) {
+    return { valid: false, error: "Invalid fields in edit profile request" };
+  }
+  return { valid: true };
+};
+
+module.exports = {validateSignupData, validateEditProfileData};
