@@ -14,6 +14,10 @@ requestRouter.post("/request/:status/:toUserId", userAuth, async (req, res) => {
             return res.status(404).send('User not found in database!');
         }
         const status = req.params.status;
+        const ALLOWED_STATUS = ["interested","ignored"];
+        if (!ALLOWED_STATUS.includes(status)){
+            throw new Error("Status not allowed");
+        }
         const connectionRequestInstance = new ConnectionRequest({
             fromUserId, toUserId, status
         });
