@@ -9,6 +9,7 @@ const userSchema = new mongoose.Schema(
       type: String,
       required: true,
       trim: true,
+      index: true,
       validate(value) {
         if (!validator.isAlpha(value)) {
           throw new Error("First name must contain only alphabetic characters");
