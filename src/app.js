@@ -5,6 +5,7 @@ const cookieParser = require("cookie-parser");
 const authRouter = require("./routes/auth");
 const profileRouter = require("./routes/profile");
 const requestRouter = require("./routes/request");
+const userRouter = require("./routes/user");
 
 connectDB()
   .then(() => {
@@ -24,6 +25,7 @@ app.use(cookieParser()); // parse cookies in the request headers to make it acce
 app.use("/",authRouter); // add authRouter to the app
 app.use("/",profileRouter); // add profileRouter to the app
 app.use("/",requestRouter); // add requestRouter to the app
+app.use("/",userRouter); // add userRouter to the app
 
 
 
