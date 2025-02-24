@@ -6,12 +6,12 @@ const userAuth = async (req, res, next) => {
     try{
         const token = req.cookies.token;
         if (!token){
-            throw new Error("JWT expired");
+            return res.status(401).send("JWT expired");
         }
         const decodedMsg = await jwt.verify(token, "Mysecretkey");
         const user = await User.findById({ _id: decodedMsg._id });
         if (!user) {
-            throw new Error("User not found");
+            return res.status(404).send("User not found");
         }
 
         req.user = user;

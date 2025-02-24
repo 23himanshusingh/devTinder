@@ -3,7 +3,7 @@ const userRouter = express.Router();
 const userAuth = require('../middlewares/auth');
 const ConnectionRequest = require('../models/connectionRequest');
 const User = require("../models/user");
-const SELECT_FIELDS = "firstName lastName gender age about skills";
+const SELECT_FIELDS = "firstName lastName gender age about skills photoUrl";
 
 // GET all received connection requests
 userRouter.get("/user/requests/received", userAuth, async (req, res) => {
@@ -74,7 +74,7 @@ userRouter.get("/user/feed", userAuth, async (req, res) => {
         }).select(SELECT_FIELDS).skip(skip).limit(limit);
 
 
-        res.status(200).json({data : FeedProfiles});
+        res.status(200).send(FeedProfiles);
     }catch(err){
         res.status(404).send(err.message);
     }
