@@ -19,29 +19,28 @@ connectDB()
     console.log(err);
   });
 
-app.use(cors({
-  origin: 'http://localhost:5173/',
-  methods: ["GET", "POST", "PATCH", "DELETE", "OPTIONS"],
-  credentials: true
-}));
+app.use(
+  cors({
+    origin: "http://localhost:5173",
+    credentials: true,
+    methods: ["GET", "POST", "PATCH", "PUT", "DELETE", "OPTIONS"], // Include PATCH here
+    allowedHeaders: ["Content-Type", "Authorization"], // Include additional headers if required
+  })
+);
+
+// app.options("*", (req, res) => {
+//   res.setHeader("Access-Control-Allow-Origin", "http://localhost:5173");
+//   res.setHeader("Access-Control-Allow-Methods", "GET, POST, PATCH, PUT, DELETE, OPTIONS");
+//   res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
+//   res.setHeader("Access-Control-Allow-Credentials", "true");
+//   res.sendStatus(200); // Preflight OK
+// });
+
+
 app.use(express.json()); // parse JSON bodies
-app.use(cookieParser()); // parse cookies in the request headers to make it accessible 
+app.use(cookieParser()); // parse cookies in the request headers to make it accessible
 
-
-app.use("/",authRouter); // add authRouter to the app
-app.use("/",profileRouter); // add profileRouter to the app
-app.use("/",requestRouter); // add requestRouter to the app
-app.use("/",userRouter); // add userRouter to the app
-
-
-
-
-
-
-
-
-
-
-
-
-
+app.use("/", authRouter); // add authRouter to the app
+app.use("/", profileRouter); // add profileRouter to the app
+app.use("/", requestRouter); // add requestRouter to the app
+app.use("/", userRouter); // add userRouter to the app
