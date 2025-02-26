@@ -7,17 +7,8 @@ const profileRouter = require("./routes/profile");
 const requestRouter = require("./routes/request");
 const userRouter = require("./routes/user");
 const cors = require("cors");
-
-connectDB()
-  .then(() => {
-    console.log("Connected to MongoDB"); // if connection is successful
-    app.listen(3000, () => {
-      console.log("Listening on PORT 3000");
-    }); // listen for incoming requests
-  })
-  .catch((err) => {
-    console.log(err);
-  });
+const http = require("http");
+const initializeSocket = require("./utils/socket");
 
 app.use(
   cors({
@@ -28,13 +19,7 @@ app.use(
   })
 );
 
-// app.options("*", (req, res) => {
-//   res.setHeader("Access-Control-Allow-Origin", "http://localhost:5173");
-//   res.setHeader("Access-Control-Allow-Methods", "GET, POST, PATCH, PUT, DELETE, OPTIONS");
-//   res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
-//   res.setHeader("Access-Control-Allow-Credentials", "true");
-//   res.sendStatus(200); // Preflight OK
-// });
+
 
 
 app.use(express.json()); // parse JSON bodies
@@ -44,3 +29,17 @@ app.use("/", authRouter); // add authRouter to the app
 app.use("/", profileRouter); // add profileRouter to the app
 app.use("/", requestRouter); // add requestRouter to the app
 app.use("/", userRouter); // add userRouter to the app
+
+const server = http.createServer(app);
+initializeSocket(server);
+
+connectDB()
+  .then(() => {
+    console.log("Connected to MongoDB"); // if connection is successful
+    server.listen(3000, () => {
+      console.log("Listening on PORT 3000");
+    }); // listen for incoming requests
+  })
+  .catch((err) => {
+    console.log(err);
+  });
