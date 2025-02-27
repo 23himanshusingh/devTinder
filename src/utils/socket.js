@@ -3,7 +3,7 @@ const crypto = require("crypto");
 const { Chat } = require("../models/chat");
 const ConnectionRequest = require("../models/connectionRequest");
 
-const getSecretRoomId = (userId, taargetId) => {
+const getSecretRoomId = (userId, targetUserId) => {
     return crypto
         .createHash("sha256")
         .update([userId, targetUserId].sort().join('$'))
@@ -55,7 +55,7 @@ const initializeSocket = (server) => {
                     firstName,lastName,text
                 });
             }catch(err){
-                resizeBy.send(err);
+                res.send(err);
             }
         });
         socket.on("disconnect", () => {});
