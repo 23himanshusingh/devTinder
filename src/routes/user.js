@@ -80,4 +80,28 @@ userRouter.get("/user/feed", userAuth, async (req, res) => {
     }
 });
 
+
+userRouter.get("/status/:userId", userAuth, async (req, res) => {
+    try {
+      const { userId } = req.params;
+      const user = await User.findById(userId).select("isOnline lastSeen firstName lastName");
+  
+      if (!user) {
+        return res.status(404).send("User not found");
+      }
+  
+      const status = {
+        firstName: user.firstName,
+        lastName: user.lastName,
+        isOnline: user.isOnline,
+        lastSeen: user.isOnline ? null : user.lastSeen,
+      };
+  
+      res.json(status);
+    } catch (err) {
+      console.error(err);
+      res.status(500).send("Server error");
+    }
+  });
+
 module.exports = userRouter;

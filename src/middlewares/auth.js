@@ -13,6 +13,9 @@ const userAuth = async (req, res, next) => {
         if (!user) {
             return res.status(404).send("User not found");
         }
+        // Set user as online when they make a request
+        user.isOnline = true;
+        user.lastSeen = null; // Clear lastSeen while online
 
         req.user = user;
         next();

@@ -103,6 +103,14 @@ const userSchema = new mongoose.Schema(
         }
       },
     },
+    isOnline: {
+      type: Boolean,
+      default: false,
+    },
+    lastSeen: {
+      type: Date,
+      default: null,
+    },
   },
   { timestamps: true }
 );

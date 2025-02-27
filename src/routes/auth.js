@@ -3,6 +3,7 @@ const authRouter = express.Router();
 const User = require("../models/user");
 const { validateSignupData } = require("../utils/validate"); // import validate function
 const bcrypt = require("bcrypt");
+const userAuth = require("../middlewares/auth");
 
 // add a user to the database
 authRouter.post("/signup", async (req, res) => {
@@ -55,6 +56,10 @@ authRouter.post("/login", async (req, res) => {
       res.cookie("token", token, {
         expires: new Date(Date.now() + 10 * 900000),
       });
+      // Set user as online when they make a request
+      user.isOnline = true;
+      user.lastSeen = null; // Clear lastSeen while online
+      await user.save();
       res.send(user);
     }
   } catch (err) {
@@ -62,7 +67,11 @@ authRouter.post("/login", async (req, res) => {
   }
 });
 
-authRouter.post("/logout", async (req, res) => {
+authRouter.post("/logout",userAuth, async (req, res) => {
+  const user = req.user;
+  user.isOnline = false;
+  user.lastSeen = new Date(); // Set last seen to current time
+  await user.save();
   res.cookie("token", null, {
     expires: new Date(Date.now()),
   });

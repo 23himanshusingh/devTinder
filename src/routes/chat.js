@@ -27,12 +27,24 @@ chatRouter.get("/chat/:targetUserId", userAuth, async (req, res) => {
       });
       await chat.save();
     }
-    const targetUser = await User.findById(targetUserId).select("firstName lastName");
-    if (!targetUser){
-        res.status(404).send("Requested user not found");
-    }
+    // const targetUser = await User.findById(targetUserId).select("firstName lastName");
+    // if (!targetUser){
+    //     res.status(404).send("Requested user not found");
+    // }
 
-    res.json({chat, targetUser});
+    // Fetch target user's status
+    const targetUser = await User.findById(targetUserId).select("isOnline lastSeen firstName lastName");
+    const response = {
+      chat,
+      targetUserStatus: {
+        firstName: targetUser.firstName,
+        lastName: targetUser.lastName,
+        isOnline: targetUser.isOnline,
+        lastSeen: targetUser.isOnline ? null : targetUser.lastSeen,
+      },
+    };
+
+    res.json(response);
   } catch (err) {
     console.error(err);
   }
